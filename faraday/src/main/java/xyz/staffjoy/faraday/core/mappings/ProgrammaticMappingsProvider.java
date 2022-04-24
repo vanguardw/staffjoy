@@ -14,6 +14,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * @Title: 编程方式路由映射
+ * @Description:
+ * @Author: Vanguard
+ * @Version: 1.0
+ * @Date: 22/4/17
+ */
 public class ProgrammaticMappingsProvider extends MappingsProvider {
     protected final EnvConfig envConfig;
 
@@ -33,6 +40,13 @@ public class ProgrammaticMappingsProvider extends MappingsProvider {
         return false;
     }
 
+    /**
+     * 编程方式获取路由映射定义
+     * @param
+     * @return java.util.List<xyz.staffjoy.faraday.config.MappingProperties>
+     * @author Vanguard
+     * @date 22/4/17 20:30
+     */
     @Override
     protected List<MappingProperties> retrieveMappings() {
         List<MappingProperties> mappings = new ArrayList<>();

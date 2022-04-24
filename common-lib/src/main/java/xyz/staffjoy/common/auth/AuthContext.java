@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 /**
  *
  * A context holder class for holding the current userId and authz info
+ *  用户请求上下文
  *
  * @author bobo
  */

@@ -14,6 +14,13 @@ import java.util.stream.Collectors;
 
 import static org.springframework.util.CollectionUtils.isEmpty;
 
+/**
+ * @Title: 路由映射抽象类
+ * @Description: 提供根据请求信息获取映射信息
+ * @Author: Vanguard
+ * @Version: 1.0
+ * @Date: 22/4/17
+ */
 public abstract class MappingsProvider {
 
     private static final ILogger log = SLoggerFactory.getLogger(MappingsProvider.class);
@@ -36,6 +43,14 @@ public abstract class MappingsProvider {
         this.httpClientProvider = httpClientProvider;
     }
 
+    /**
+     * 从请求信息获取映射的路由信息
+     * @param originHost HOST
+     * @param request
+     * @return xyz.staffjoy.faraday.config.MappingProperties
+     * @author Vanguard
+     * @date 22/4/17 20:27
+     */
     public MappingProperties resolveMapping(String originHost, HttpServletRequest request) {
         if (shouldUpdateMappings(request)) {
             updateMappings();
@@ -49,6 +64,13 @@ public abstract class MappingsProvider {
         return resolvedMappings.get(0);
     }
 
+    /**
+     * 根据路由映射信息
+     * @param
+     * @return void
+     * @author Vanguard
+     * @date 22/4/17 20:28
+     */
     @PostConstruct
     protected synchronized void updateMappings() {
         List<MappingProperties> newMappings = retrieveMappings();
@@ -58,7 +80,21 @@ public abstract class MappingsProvider {
         log.info("Destination mappings updated", mappings);
     }
 
+    /**
+     * 时候需要更新路由映射
+     * @param request
+     * @return boolean
+     * @author Vanguard
+     * @date 22/4/17 20:28
+     */
     protected abstract boolean shouldUpdateMappings(HttpServletRequest request);
 
+    /**
+     * 根据路由映射定义获取路由映射信息
+     * @param
+     * @return java.util.List<xyz.staffjoy.faraday.config.MappingProperties>
+     * @author Vanguard
+     * @date 22/4/17 20:29
+     */
     protected abstract List<MappingProperties> retrieveMappings();
 }

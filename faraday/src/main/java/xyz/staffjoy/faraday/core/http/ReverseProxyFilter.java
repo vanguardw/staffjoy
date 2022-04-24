@@ -25,6 +25,13 @@ import static java.lang.String.valueOf;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
+/**
+ * @Title:  反向代理拦截器
+ * @Description: 网关主流程拦截器
+ * @Author: Vanguard
+ * @Version: 1.0
+ * @Date: 22/4/18
+ */
 public class ReverseProxyFilter extends OncePerRequestFilter {
 
     protected static final String X_FORWARDED_FOR_HEADER = "X-Forwarded-For";
@@ -72,6 +79,7 @@ public class ReverseProxyFilter extends OncePerRequestFilter {
         String traceId = traceInterceptor.generateTraceId();
         traceInterceptor.onRequestReceived(traceId, method, originHost, originUri, headers);
 
+        // 路由解析找到对应请求的路由映射
         MappingProperties mapping = mappingsProvider.resolveMapping(originHost, request);
         if (mapping == null) {
             traceInterceptor.onNoMappingFound(traceId, method, originHost, originUri, headers);
@@ -89,6 +97,7 @@ public class ReverseProxyFilter extends OncePerRequestFilter {
         addForwardHeaders(request, headers);
 
         RequestData dataToForward = new RequestData(method, originHost, originUri, headers, body, request);
+        // 请求截获器
         preForwardRequestInterceptor.intercept(dataToForward, mapping);
         if (dataToForward.isNeedRedirect() && !isBlank(dataToForward.getRedirectUrl())) {
             log.debug(String.format("Redirecting to -> %s", dataToForward.getRedirectUrl()));
@@ -96,6 +105,7 @@ public class ReverseProxyFilter extends OncePerRequestFilter {
             return;
         }
 
+        // 请求转发
         ResponseEntity<byte[]> responseEntity =
                 requestForwarder.forwardHttpRequest(dataToForward, traceId, mapping);
         this.processResponse(response, responseEntity);

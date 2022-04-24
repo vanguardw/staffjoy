@@ -59,17 +59,25 @@ public class RequestForwarder {
     }
 
     public ResponseEntity<byte[]> forwardHttpRequest(RequestData data, String traceId, MappingProperties mapping) {
+        // 负债均衡选择对应的目前服务的HOST信息、服务名称
         ForwardDestination destination = resolveForwardDestination(data.getUri(), mapping);
         prepareForwardedRequestHeaders(data, destination);
+
+        // 日志拦截打印
         traceInterceptor.onForwardStart(traceId, destination.getMappingName(),
                 data.getMethod(), data.getHost(), destination.getUri().toString(),
                 data.getBody(), data.getHeaders());
+        // 构造请求
         RequestEntity<byte[]> request = new RequestEntity<>(data.getBody(), data.getHeaders(), data.getMethod(), destination.getUri());
+        // 发送请求
         ResponseData response = sendRequest(traceId, request, mapping, destination.getMappingMetricsName(), data);
 
         log.debug(String.format("Forwarded: %s %s %s -> %s %d", data.getMethod(), data.getHost(), data.getUri(), destination.getUri(), response.getStatus().value()));
 
+        // 日志拦截打印
         traceInterceptor.onForwardComplete(traceId, response.getStatus(), response.getBody(), response.getHeaders());
+
+        // 响应拦截器
         postForwardResponseInterceptor.intercept(response, mapping);
         prepareForwardedResponseHeaders(response);
 
@@ -112,6 +120,7 @@ public class RequestForwarder {
     }
 
     protected URI createDestinationUrl(String uri, MappingProperties mapping) {
+        // 负载均衡
         String host = loadBalancer.chooseDestination(mapping.getDestinations());
         try {
             return new URI(host + uri);
@@ -120,10 +129,22 @@ public class RequestForwarder {
         }
     }
 
+    /**
+     * 发送请求
+     * @param traceId
+     * @param request
+     * @param mapping
+     * @param mappingMetricsName
+     * @param requestData
+     * @return xyz.staffjoy.faraday.core.http.ResponseData
+     * @author Vanguard
+     * @date 22/4/18 21:22
+     */
     protected ResponseData sendRequest(String traceId, RequestEntity<byte[]> request, MappingProperties mapping, String mappingMetricsName, RequestData requestData ) {
         ResponseEntity<byte[]> response;
         long startingTime = nanoTime();
         try {
+            // 发送请求
             response = httpClientProvider.getHttpClient(mapping.getName()).exchange(request, byte[].class);
             recordLatency(mappingMetricsName, startingTime);
         } catch (HttpStatusCodeException e) {
